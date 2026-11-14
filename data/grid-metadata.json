@@ -1,0 +1,20 @@
+{
+  "product": "NASA GISS GISTEMP v4 LOTI, ERSST v5, 1200 km smoothing",
+  "source_url": "https://data.giss.nasa.gov/pub/gistemp/gistemp1200_GHCNv4_ERSSTv5.nc.gz",
+  "citation_url": "https://data.giss.nasa.gov/gistemp/",
+  "accessed": "2026-11-14",
+  "units": "degC anomaly relative to 1951-1980",
+  "grid": {
+    "rows": 90,
+    "columns": 180,
+    "lat_first_center": -89.0,
+    "lon_first_center": -179.0,
+    "step_degrees": 2
+  },
+  "first_year": 1880,
+  "last_complete_year": 2025,
+  "months_per_year_required": 9,
+  "scale": 100,
+  "fill_value": 32767,
+  "binary_format": "little-endian signed int16; year-major, then latitude south-to-north, longitude west-to-east"
+}
