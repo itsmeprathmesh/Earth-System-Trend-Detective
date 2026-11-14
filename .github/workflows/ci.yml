@@ -1,0 +1,79 @@
+name: CI & Scientific Validation Pipeline
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  validate:
+    name: Syntax & Scientific Invariance Gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Set up Python environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Gate A - Validate JavaScript Syntax
+        run: |
+          node --check app.js
+          node --check audit/run_js_stats.js
+          node --check audit/measure_cell_trend.js
+          node --check audit/capture_screenshot.js
+
+      - name: Gate B - Statistical Fixture Invariance Test
+        run: |
+          node audit/run_js_stats.js audit/fixtures_input.json
+
+      - name: Gate C - Automated Pytest Suite
+        run: |
+          pytest audit/test_suite.py -v
+
+      - name: Gate D - Verify Binary Grid Array vs NASA Global Mean
+        run: |
+          python audit/check_data.py
+
+      - name: Gate E - Verify Sen Slope & Mann-Kendall vs SciPy
+        run: |
+          python audit/fixtures.py
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: validate
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

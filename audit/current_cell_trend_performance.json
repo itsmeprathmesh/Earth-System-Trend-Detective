@@ -1,0 +1,52 @@
+﻿{
+  "timestamp": "2026-11-14T20:59:16.876Z",
+  "environment": {
+    "node_version": "v22.15.0",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "testA": {
+    "test": "Test A (1880-2025)",
+    "start": 1880,
+    "end": 2025,
+    "years_count": 146,
+    "iterations": 5,
+    "avg_execution_ms": 10.544,
+    "min_execution_ms": 9.188,
+    "raw_times_ms": [
+      9.955,
+      9.188,
+      9.952,
+      12.316,
+      11.306
+    ],
+    "input_records_processed": 2365200,
+    "input_bytes": 4730400,
+    "output_cells": 16200,
+    "output_bytes": 64800,
+    "valid_trend_cells": 16023,
+    "nan_trend_cells": 177
+  },
+  "testB": {
+    "test": "Test B (2000-2025)",
+    "start": 2000,
+    "end": 2025,
+    "years_count": 26,
+    "iterations": 5,
+    "avg_execution_ms": 1.88,
+    "min_execution_ms": 1.808,
+    "raw_times_ms": [
+      1.836,
+      2.059,
+      1.808,
+      1.82,
+      1.877
+    ],
+    "input_records_processed": 421200,
+    "input_bytes": 842400,
+    "output_cells": 16200,
+    "output_bytes": 64800,
+    "valid_trend_cells": 16021,
+    "nan_trend_cells": 179
+  }
+}

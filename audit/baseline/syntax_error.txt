@@ -1,0 +1,18 @@
+Original Error before fix:
+Command: node --check app.js
+Output:
+C:\Users\YASH BINEKAR\langflow\New folder\Earth-System-Trend-Detective\app.js:122
+  const answer = t * Math.exp(-z * z - 1.26551223 + t * (1.00002368 + t * (0.37409196 + t * (0.09678418 + t * (-0.18628806 + t * (0.27886807 + t * (-1.13520398 + t * (1.48851587 + t * (-0.82215223 + t * 0.17087277))))))));
+                                                                                                                                                                                                                            ^
+
+SyntaxError: missing ) after argument list
+    at wrapSafe (node:internal/modules/cjs/loader:1662:18)
+    at checkSyntax (node:internal/main/check_syntax:78:3)
+
+Node.js v22.15.0
+
+Analysis:
+Line 122 contains Chebyshev polynomial approximation for complementary error function erfc(x).
+Math.exp opens 1 parenthesis, and there are 8 nested polynomial terms opening 8 parentheses, totaling 9 opening parentheses.
+The original line had only 8 closing parentheses.
+Adding the 9th closing parenthesis resolves the SyntaxError with zero disruption to surrounding code.

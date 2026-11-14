@@ -8,7 +8,7 @@
     <title>Earth System Trend Detective</title>
     <link rel="preconnect" href="https://unpkg.com" />
     <link rel="preconnect" href="https://basemaps.cartocdn.com" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="vendor/leaflet.css" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -20,6 +20,9 @@
         </a>
         <div class="topbar-right">
           <span class="source-status"><i></i> NASA DATASET LOADED</span>
+          <button id="demo-button" class="topbar-action" type="button" aria-haspopup="dialog" aria-controls="demo-dialog">GUIDED DEMO</button>
+          <button id="ask-button" class="topbar-action" type="button" aria-haspopup="dialog" aria-controls="ask-dialog">ASK THE DETECTIVE</button>
+          <button id="method-button" class="topbar-action" type="button" aria-haspopup="dialog" aria-controls="method-dialog">DATA &amp; METHOD</button>
           <a class="source-link" href="https://data.giss.nasa.gov/gistemp/" target="_blank" rel="noreferrer">DATA SOURCE <span>↗</span></a>
         </div>
       </header>
@@ -62,14 +65,21 @@
           </div>
           <div class="control-divider"></div>
           <div class="control-group period-control">
-            <label>TIME WINDOW <span id="period-label">1880 — 2025</span></label>
-            <div class="range-row"><input id="start-year" type="range" min="1880" max="2025" value="1880" aria-label="Start year" /><input id="end-year" type="range" min="1880" max="2025" value="2025" aria-label="End year" /></div>
+            <label for="start-year">TIME WINDOW <span id="period-label" aria-live="polite">1880 — 2025</span></label>
+            <div class="range-row" role="group" aria-label="Choose analysis years"><input id="start-year" type="range" min="1880" max="2025" value="1880" aria-label="Start year" aria-describedby="period-label" /><input id="end-year" type="range" min="1880" max="2025" value="2025" aria-label="End year" aria-describedby="period-label" /></div>
             <div class="range-years"><span id="start-label">1880</span><span id="end-label">2025</span></div>
           </div>
           <div class="control-divider"></div>
           <div class="control-group variable-control">
             <label for="variable-select">EARTH SYSTEM VARIABLE</label>
-            <div class="select-wrap"><select id="variable-select" aria-label="Earth system variable"><option>Surface temperature anomaly</option></select><span class="select-chevron">⌄</span></div>
+            <div class="select-wrap">
+              <select id="variable-select" aria-label="Earth system variable">
+                <option value="temp" selected>Surface temperature anomaly (v1 Active)</option>
+                <option value="precip" disabled>Precipitation flux (v2 Planned)</option>
+                <option value="soil" disabled>Soil moisture index (v2 Planned)</option>
+              </select>
+              <span class="select-chevron">⌄</span>
+            </div>
           </div>
           <button id="reset-button" class="reset-button" type="button" title="Reset analysis">↺ <span>RESET</span></button>
         </section>
@@ -101,7 +111,7 @@
             </section>
 
             <section class="chart-card panel">
-              <div class="panel-heading chart-heading"><div><div class="panel-kicker">ANNUAL TEMPERATURE ANOMALY</div><h2>Signal over time</h2></div><button id="download-button" class="icon-button" type="button" title="Download selected time series as CSV">↓</button></div>
+              <div class="panel-heading chart-heading"><div><div class="panel-kicker">ANNUAL TEMPERATURE ANOMALY</div><h2>Signal over time</h2></div><div class="chart-actions"><button id="report-button" class="icon-button" type="button" title="Export Markdown Trend Report" aria-label="Export Markdown report">📄</button><button id="json-button" class="icon-button" type="button" title="Export JSON Telemetry Packet" aria-label="Export JSON telemetry">{ }</button><button id="download-button" class="icon-button" type="button" title="Download selected time series as CSV" aria-label="Download time-series CSV">↓</button></div></div>
               <div class="chart-wrap"><canvas id="trend-chart" aria-label="Annual temperature anomaly time series"></canvas></div>
               <div class="chart-legend"><span><i class="chart-dot"></i> Annual anomaly</span><span><i class="chart-line"></i> Sen slope</span></div>
             </section>
@@ -126,11 +136,42 @@
       <div class="demo-dialog-top"><span class="panel-kicker" id="demo-step">GUIDED WALKTHROUGH · STEP 1 OF 3</span><button id="demo-close" class="icon-button" type="button" aria-label="Close walkthrough">×</button></div>
       <div class="demo-progress"><i id="demo-progress-fill"></i></div>
       <p class="demo-tag" id="demo-tag">DEMO 01 · GLOBAL</p><h2 id="demo-title">Start with a question</h2><p id="demo-body" class="demo-body"></p>
-      <div class="demo-actions"><button id="demo-back" type="button" class="demo-back">BACK</button><button id="demo-next" type="button" class="demo-next">NEXT STEP <span>→</span></button></div>
+      <p id="demo-speech-status" class="dialog-status" aria-live="polite">Text walkthrough available.</p>
+      <div class="demo-actions"><button id="demo-back" type="button" class="demo-back">BACK</button><div class="demo-action-group"><button id="demo-speech-toggle" type="button" class="demo-back" aria-pressed="false">PAUSE NARRATION</button><button id="demo-next" type="button" class="demo-next">NEXT STEP <span>→</span></button></div></div>
     </dialog>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <dialog id="ask-dialog" class="utility-dialog ask-dialog" aria-labelledby="ask-title">
+      <div class="utility-dialog-heading"><div><span class="panel-kicker">RULE-BASED HELP · CURRENT DATA ONLY</span><h2 id="ask-title">Ask the Detective</h2></div><button class="icon-button" type="button" data-close-dialog="ask-dialog" aria-label="Close Ask the Detective">×</button></div>
+      <p class="utility-intro">Ask about the loaded dataset, analysis method, or results currently on screen. Answers use only this app’s metadata and computed values.</p>
+      <div class="ask-answer-wrap">
+        <div id="ask-answer" class="ask-answer" role="status" aria-live="polite">Try “What does the p-value mean?” or “Summarize this trend.”</div>
+        <button id="ask-speak-button" class="timeline-btn" type="button" title="Read explanation aloud" aria-label="Read explanation aloud">🔊 READ ALOUD</button>
+      </div>
+      <form id="ask-form" class="ask-form"><label for="ask-question">YOUR QUESTION</label><div class="ask-input-row"><input id="ask-question" name="question" type="text" maxlength="240" autocomplete="off" placeholder="Ask about the current analysis…" required /><button type="submit" class="demo-next">ASK</button></div></form>
+      <div class="ask-prompts" aria-label="Suggested questions">
+        <button type="button" data-ask-prompt="Summarize this trend">Summarize this trend</button>
+        <button type="button" data-ask-prompt="What does the p-value mean?">Explain the p-value</button>
+        <button type="button" data-ask-prompt="What is AR(1) persistence?">What is AR(1) persistence?</button>
+        <button type="button" data-ask-prompt="What is Sen's median slope?">Sen's median slope</button>
+        <button type="button" data-ask-prompt="Explain Arctic amplification">Arctic amplification</button>
+        <button type="button" data-ask-prompt="What data is loaded?">What data is loaded?</button>
+      </div>
+    </dialog>
+
+    <dialog id="method-dialog" class="utility-dialog method-dialog" aria-labelledby="method-title">
+      <div class="utility-dialog-heading"><div><span class="panel-kicker">PROVENANCE · METHODS · LIMITATIONS</span><h2 id="method-title">Data &amp; Method</h2></div><button class="icon-button" type="button" data-close-dialog="method-dialog" aria-label="Close Data and Method">×</button></div>
+      <div class="method-tabs" role="tablist" aria-label="Methodology sections">
+        <button class="method-tab active" data-tab="provenance" role="tab" aria-selected="true" type="button">Data Ingestion</button>
+        <button class="method-tab" data-tab="math" role="tab" aria-selected="false" type="button">Mathematical Models</button>
+        <button class="method-tab" data-tab="spatial" role="tab" aria-selected="false" type="button">Spatial Aggregation</button>
+        <button class="method-tab" data-tab="limitations" role="tab" aria-selected="false" type="button">Limitations &amp; Sources</button>
+      </div>
+      <div id="method-content" class="method-content" aria-live="polite"></div>
+      <div class="utility-dialog-footer"><a href="https://data.giss.nasa.gov/gistemp/" target="_blank" rel="noreferrer">NASA GISTEMP SOURCE ↗</a><button type="button" data-close-dialog="method-dialog" class="demo-next">CLOSE</button></div>
+    </dialog>
+
+    <script src="vendor/leaflet.js"></script>
+    <script src="vendor/chart.umd.min.js"></script>
     <script src="app.js" defer></script>
   </body>
 </html>
