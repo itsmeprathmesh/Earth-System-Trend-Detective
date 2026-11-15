@@ -14,7 +14,7 @@ Analyzing long-term climate observations typically requires specialized GIS soft
 
 ## 3. Goals & Non-Goals
 
-### Goals
+Goals
 - Provide an interactive, zero-configuration web interface to explore NASA GISTEMP v4 annual surface temperature anomalies (1880–2025).
 - Compute spatial trend maps and regional time-series metrics dynamically on the client side without backend dependencies.
 - Render statistical indicators (Sen slope, Mann-Kendall test with lag-1 autocorrelation variance adjustment, p-value) with transparent caveats.
@@ -23,7 +23,7 @@ Analyzing long-term climate observations typically requires specialized GIS soft
 - Include an on-demand, rule-based scientific interpretation assistant ("Ask the Detective").
 - Provide a tabbed data provenance and methodology modal explaining data ingestion, mathematics, spatial aggregation, and caveats.
 
-### Non-Goals
+Non-Goals
 - Real-time querying of remote NASA NetCDF servers on user interaction (data is preprocessed into compact static binary formats).
 - Non-linear, polynomial, or predictive climate modeling (scope is restricted to observational linear trend estimation).
 - Hyper-local or station-specific forecasting (analysis is on a 2° × 2° grid with 1200 km smoothing radius).

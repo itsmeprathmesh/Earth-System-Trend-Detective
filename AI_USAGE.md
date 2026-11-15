@@ -8,6 +8,7 @@ Codex generated or changed the files below for this milestone. Humans must revie
 | `style.css` | Codex wrote the small responsive stylesheet for the minimal NASA POWER page. | Review the layout at desktop and phone widths. |
 | `power-app.js` | Codex wrote live NASA POWER request construction, monthly parsing, season/year aggregation, Chart.js rendering, and honest request errors. | Verify live CORS and API coverage for the five listed variables. |
 | `scripts/verify-step1-browser.mjs` | Codex wrote a headless Chrome smoke check for local page loading, Chart.js availability, and the Run flow. | Repeat against a browser profile with open network access; the isolated profile here cannot reach NASA POWER. |
+| `vercel.json` | Codex configured Vercel to use the static “Other” preset, skip framework build detection, and serve the repository root. | Commit and redeploy from the Vercel-connected branch; verify the dashboard does not set a conflicting project Root Directory. |
 | `gistemp.html` | Codex moved the pre-existing formatted GISTEMP page here so its earlier work remains accessible. | Check its navigation after publication. |
 | `investigate.css` | Codex wrote the field-notebook layout, responsive rules, year sliders, dark theme, and reduced-motion handling. | Review contrast and layout on real devices. |
 | `src/data/power.js` | Codex wrote NASA POWER URL construction, parameter descriptions, response parsing, provenance receipts, and exact-request fallback rules. | Recheck variable definitions, units, and NASA metadata as the API changes. |
