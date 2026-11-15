@@ -80,3 +80,20 @@ The implementation and audit artifacts were copied into the target checkout on 2
 ### Verification update (2026-11-15)
 
 A later real-time headless Chrome run supersedes the earlier localhost-timeout notes above: `NASA DATASET LOADED` was observed, the map initialized, and dashboard plus dialog screenshots were captured under `audit/shots/after/`. The first virtual-time screenshots were stale and showed a load issue; they were replaced. UI logic checks, syntax checks, fixture statistics, and data integrity checks pass. See `audit/FINAL_REPORT.md` for exact commands, scope, and the remaining fixture-write permission limitation.
+
+## NASA Space Apps Challenge 2026: POWER P0
+
+| Milestone | Status | Date | Verification notes |
+|---|---|---|---|
+| P0: static NASA POWER investigation, traceable live/snapshot data, statistics, chart, and case result | Done | 2026-11-15 | `node --test src/stats/index.test.js src/data/power.test.js`: 10 passed. NASA monthly endpoint check: all 12 proposed variables available. Eight raw NASA snapshots fetched for 1981–2025. Headless Chrome showed LIVE data; network-blocked Chrome rendered a matching SNAPSHOT. Three randomized receipt checks matched fresh POWER requests for mean, first/last valid values, and counts. `python scripts/verify.py` matched SciPy/Python OLS, Sen slope, and tie-corrected Mann–Kendall values. Mobile viewport measured 410 px with no horizontal overflow. Screenshots: `audit/shots/after/power-investigation*.png`. GitHub Pages URL still needs human publication. |
+| P1: guided variable choice, place search and map, season/year controls, responsive notebook UI | Done | 2026-11-15 | Native Node suite: 10 passed. Headless Chrome: dual year sliders synchronized with year fields, custom-month aggregation and map-click coordinate selection worked; 410 px viewport had no overflow. Offline Chrome rendered the matching NASA snapshot. Three randomized receipt comparisons matched fresh POWER data. Open-Meteo place search is implemented; its direct HTTP endpoint/CORS header was verified, while fetch from the isolated browser profile was unavailable (`Failed to fetch`), so browser geocoder selection remains unverified in this environment. |
+
+## Minimal NASA POWER App (user-directed sequence)
+
+| Step | Status | Date | Verification notes |
+|---|---|---|---|
+| 1: live yearly chart and inputs | Done | 2026-11-15 | Page and JavaScript syntax checked; three fresh NASA receipt comparisons passed. Headless Chrome loaded the local app, ran the form, and showed the honest network failure (its isolated profile could not reach the API); it did not show substitute values. Chart.js is pinned to cdnjs 4.6.1 with the repository's 4.4.7 file as fallback. |
+| 2: statistics and finding | Not started | | |
+| 3: data receipt | Not started | | |
+| 4: place search and preset places | Not started | | |
+| 5: GitHub Pages and README | Not started | | |
