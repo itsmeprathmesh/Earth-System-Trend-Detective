@@ -4,9 +4,9 @@ Live demo URL: **[URL PLACEHOLDER — add the GitHub Pages address after deploym
 
 ## 1) Project Title & Problem Statement
 
-Earth System Trend Detective is a browser-based investigation tool for NASA Earth science data. It lets students and the public inspect how a variable changes at a chosen point on Earth, estimate a linear rate per decade, and check whether the record supports a statistically significant trend.
+Earth System Trend Detective is a browser-based tool for investigating historical temperature trends from NASA GISTEMP v4. It lets students and the public inspect global, hemispheric, and selected regional anomaly records, estimate a rate per decade, and compare the Northern and Southern Hemisphere signals.
 
-The NASA POWER monthly point API supplies the data. POWER meteorological variables are reanalysis products; solar variables draw on NASA satellite products. These values are not local ground-station measurements. The investigation receipt preserves the exact NASA request, API metadata, data mode, coverage, units, and missing-value counts.
+The primary GISTEMP map uses precomputed NASA temperature grid assets and a global mean series. The separate [NASA POWER field investigation](investigate.html) requests live monthly point data and labels its satellite and model reanalysis provenance. Neither source represents a local ground-station measurement at every point.
 
 ## 2) Team Details
 
@@ -19,29 +19,23 @@ The NASA POWER monthly point API supplies the data. POWER meteorological variabl
 
 ## 3) Solution Overview & Architecture
 
-The static site requests a monthly NASA POWER point record in the browser. A place can be set with coordinates, a click on the Leaflet map, or a name search through Open-Meteo geocoding. The analysis can group months as annual, MAM, JJAS, DJF, or a custom selection. If the exact NASA request fails, the app can use a matching NASA response snapshot. Eight snapshots cover the Sahara, Amazon basin, Arctic, Himalaya, Delhi, Ganges-Brahmaputra delta, Nagpur, and Central US plains. A snapshot for another location, variable, or request window is never substituted.
+The main static GISTEMP app loads a compact 2° × 2° anomaly grid, draws a spatial trend map and regional time series, and includes a side-by-side hemisphere comparison. The separate NASA POWER field investigation supports coordinates, place search, guided variable suggestions, seasonal aggregation, exact-request receipts, and matching NASA snapshots for demonstration locations.
 
-The app removes each calendar month's long-term mean, aggregates complete years, then calculates OLS slope statistics, Sen's slope, and a tie-corrected Mann–Kendall test with a lag-1 effective-sample-size adjustment. Year range sliders stay synchronized with the numeric controls. The chart is drawn with SVG. A data table remains available beneath it.
+GISTEMP trend statistics and time-series charts run in the browser. The comparison reports each hemisphere's Sen rate and Mann–Kendall p-value, plus the difference between their rates. Separate p-values do not constitute a statistical test of the difference. The POWER field study deseasonalizes monthly values and groups them by selected season before calculating trends.
 
 ```mermaid
 flowchart LR
-    Person[Student or investigator] --> Site[Static HTML, CSS, ES modules]
-    Site -->|Live request| Power[NASA POWER monthly point API]
-    Site -->|On request failure| Snapshot[Raw NASA response snapshots]
-    Power --> Receipt[Traceable data receipt]
-    Snapshot --> Receipt
-    Receipt --> Clean[Drop -999 and month 13]
-    Clean --> Stats[Monthly anomalies and yearly means]
-    Stats --> OLS[OLS rate, p-value, CI, R-squared]
-    Stats --> MK[Mann-Kendall, Sen slope, tie and lag-1 correction]
-    OLS --> View[SVG chart and case finding]
-    MK --> View
-    Site --> Cache[Timestamped localStorage response cache]
-    Repo[GitHub repository] --> Actions[GitHub Actions]
-    Actions --> Pages[GitHub Pages static hosting]
+    Person[Investigator] --> Site[Static HTML, CSS, JavaScript]
+    Site --> GISTEMP[NASA GISTEMP grid assets]
+    GISTEMP --> Map[Canvas trend map]
+    GISTEMP --> Stats[Regional and hemispheric statistics]
+    Stats --> Chart[Chart.js time series and comparison]
+    Site -->|Field study| POWER[NASA POWER API or exact NASA snapshot]
+    POWER --> Receipt[Data receipt and seasonal analysis]
+    Repo[Repository] --> Hosting[Static hosting: GitHub Pages or Vercel]
 ```
 
-**Technology stack:** HTML5, CSS3, browser ES modules, native `fetch`, SVG, `localStorage`, vendored Leaflet 1.9.4, Carto basemap tiles, Open-Meteo geocoding, and NASA POWER; Node.js 22 built-ins for tests and snapshot scripts; Python 3 with NumPy and SciPy for independent verification; GitHub Actions and GitHub Pages for static hosting. The root investigation has no runtime package dependencies. The original GISTEMP map is preserved at [`gistemp.html`](gistemp.html) and uses the repository's vendored Chart.js files alongside Leaflet.
+**Technology stack:** HTML5, CSS3, vanilla JavaScript, NASA GISTEMP static grid assets, NASA POWER monthly API, Chart.js 4.4.7, vendored Leaflet 1.9.4 for the GISTEMP map, Open-Meteo geocoding for the POWER field study, and static hosting. There is no application server or build step. GISTEMP is the root page; NASA POWER is at [`investigate.html`](investigate.html).
 
 NASA POWER parameter IDs were checked against the monthly endpoint: `T2M`, `T2M_MAX`, `T2M_MIN`, `PRECTOTCORR`, `RH2M`, `WS10M`, `ALLSKY_SFC_SW_DWN`, `PS`, `QV2M`, `EVLAND`, `GWETROOT`, and `GWETTOP`. Units and source metadata from each response appear in the receipt. [NASA POWER Monthly API documentation](https://power.larc.nasa.gov/docs/services/api/temporal/monthly/) · [NASA POWER Parameter Dictionary](https://power.larc.nasa.gov/parameters/).
 
@@ -53,7 +47,8 @@ Live URL: **[URL PLACEHOLDER — add the GitHub Pages address after deployment]*
 
 Demo video: **[VIDEO URL PLACEHOLDER — add after recording]**
 
-- Desktop investigation: [`audit/shots/after/power-investigation.png`](audit/shots/after/power-investigation.png)
+- GISTEMP hemisphere comparison: [`audit/shots/after/prd-hemisphere-comparison.png`](audit/shots/after/prd-hemisphere-comparison.png)
+- NASA POWER field investigation: [`audit/shots/after/power-investigation.png`](audit/shots/after/power-investigation.png)
 - Desktop chart: [`audit/shots/after/power-investigation-receipt.png`](audit/shots/after/power-investigation-receipt.png)
 - Full mobile investigation and receipt: [`audit/shots/after/power-investigation-mobile.png`](audit/shots/after/power-investigation-mobile.png)
 - Offline saved-case capture: [`audit/shots/after/power-investigation-snapshot.png`](audit/shots/after/power-investigation-snapshot.png)
@@ -66,7 +61,7 @@ The app runs from a static file server. No package installation or API key is ne
 python -m http.server 8000
 ```
 
-Open `http://localhost:8000`. The live NASA request needs an internet connection. When offline, a saved case can load its matching response from `public/data/snapshots/`; custom locations need a prior cached response for the exact request.
+Open `http://localhost:8000` using the server URL, not a `file://` path. GISTEMP fetches `data/grid-metadata.json`, `data/annual-grid.bin`, and `data/global-mean.csv` relative to the site root. The NASA POWER field study needs internet for live requests; matching NASA snapshots support its demo cases.
 
 Run the dependency-free JavaScript tests with Node.js 22:
 
@@ -93,6 +88,8 @@ python scripts/verify.py
 ```
 
 The app deploys as static files through the existing GitHub Pages workflow. Do not commit API credentials; NASA POWER does not require an API key for these requests.
+
+For CARTO Voyager tiles on Vercel, set `CARTO_API_KEY` in the project's Environment Variables and redeploy. The build writes the key into the generated browser config; restrict that key by allowed domains in CARTO. Without the variable, the map uses CARTO's dark raster tiles, which may display the provider's key notice.
 
 ## 6) AI Usage Disclosure
 

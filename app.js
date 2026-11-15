@@ -69,8 +69,8 @@ function cellTrendMap(start, end) {
   return output;
 }
 
-function selectedSeries() {
-  if (state.region === 'global') {
+function selectedSeries(region = state.region, local = state.local) {
+  if (region === 'global') {
     return state.globalSeries.filter((point) => point.year >= state.start && point.year <= state.end);
   }
   const { rows, columns, lat_first_center, lon_first_center, step_degrees } = state.meta.grid;
@@ -83,10 +83,10 @@ function selectedSeries() {
       const lat = lat_first_center + row * step_degrees;
       for (let col = 0; col < columns; col++) {
         const lon = lon_first_center + col * step_degrees;
-        let include = state.region === 'north' ? lat >= 0 : state.region === 'south' ? lat < 0 : false;
-        if (state.region === 'map' && state.local) {
-          const deltaLon = ((lon - state.local.lon + 540) % 360) - 180;
-          include = Math.abs(lat - state.local.lat) <= 6 && Math.abs(deltaLon) <= 6;
+        let include = region === 'north' ? lat >= 0 : region === 'south' ? lat < 0 : false;
+        if (region === 'map' && local) {
+          const deltaLon = ((lon - local.lon + 540) % 360) - 180;
+          include = Math.abs(lat - local.lat) <= 6 && Math.abs(deltaLon) <= 6;
         }
         if (!include) continue;
         const value = valueAt(yi, row, col);
@@ -196,6 +196,44 @@ function updateSummary() {
     ? 'Global average uses NASA’s published annual LOTI series. The map uses the matching 2° gridded analysis; local and hemisphere averages are area-weighted.'
     : 'This regional series is an area-weighted average of available 2° grid cells. Missing cells are omitted each year, and the NASA analysis uses 1200 km smoothing.');
   buildChart(points, slope);
+  if (!$('hemisphere-comparison').hidden) renderHemisphereComparison();
+}
+
+let hemisphereChart = null;
+
+function renderHemisphereComparison() {
+  const north = selectedSeries('north', null);
+  const south = selectedSeries('south', null);
+  const northSlope = senSlope(north), southSlope = senSlope(south);
+  const northTest = mannKendall(north, northSlope), southTest = mannKendall(south, southSlope);
+  const northRate = northSlope * 10, southRate = southSlope * 10;
+  const gap = northRate - southRate;
+  const fmt = (value) => Number.isFinite(value) ? `${value >= 0 ? '+' : ''}${value.toFixed(2)} °C/decade` : 'Insufficient data';
+  const pText = (p) => Number.isFinite(p) ? (p < .001 ? 'p < 0.001' : `p = ${p.toFixed(3)}`) : 'Fewer than 8 usable years';
+  $('north-sen-rate').textContent = fmt(northRate);
+  $('south-sen-rate').textContent = fmt(southRate);
+  $('hemisphere-sen-gap').textContent = fmt(gap);
+  $('north-mk-p').textContent = `${pText(northTest.p)}${Number.isFinite(northTest.p) ? (northTest.p < .05 ? ' · evidence detected' : ' · not detected') : ''}`;
+  $('south-mk-p').textContent = `${pText(southTest.p)}${Number.isFinite(southTest.p) ? (southTest.p < .05 ? ' · evidence detected' : ' · not detected') : ''}`;
+  $('hemisphere-difference').textContent = Number.isFinite(gap)
+    ? `From ${state.start} to ${state.end}, the estimated Northern Hemisphere rate is ${fmt(northRate)} and the Southern Hemisphere rate is ${fmt(southRate)}. North minus South is ${fmt(gap)}.`
+    : 'There are too few observations to estimate both hemispheric rates.';
+
+  const context = $('hemisphere-chart').getContext('2d');
+  if (hemisphereChart) hemisphereChart.destroy();
+  hemisphereChart = new Chart(context, {
+    type: 'line',
+    data: { datasets: [
+      { label: 'Northern Hemisphere', data: north.map((point) => ({ x: point.year, y: point.value })), borderColor: '#63d3d0', backgroundColor: 'rgba(99,211,208,.08)', borderWidth: 1.8, pointRadius: 0, pointHoverRadius: 3, tension: .12 },
+      { label: 'Southern Hemisphere', data: south.map((point) => ({ x: point.year, y: point.value })), borderColor: '#f79a62', backgroundColor: 'rgba(247,154,98,.06)', borderWidth: 1.8, pointRadius: 0, pointHoverRadius: 3, tension: .12 },
+    ] },
+    options: { responsive: true, maintainAspectRatio: false, animation: false, parsing: false,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: { legend: { display: true, position: 'bottom', labels: { color: '#b5c6cb', boxWidth: 14, font: { family: 'DM Mono', size: 9 } } }, tooltip: { callbacks: { label: (item) => `${item.dataset.label}: ${item.parsed.y.toFixed(2)} °C` } } },
+      scales: { x: { type: 'linear', min: state.start, max: state.end, title: { display: true, text: 'Year', color: '#91a5ae' }, grid: { color: 'rgba(140,170,180,.09)' }, ticks: { color: '#8da2aa', maxTicksLimit: 6, font: { family: 'DM Mono', size: 8 } }, border: { display: false } },
+        y: { title: { display: true, text: 'Temperature anomaly (°C)', color: '#91a5ae' }, grid: { color: 'rgba(140,170,180,.09)' }, ticks: { color: '#8da2aa', maxTicksLimit: 5, font: { family: 'DM Mono', size: 8 }, callback: (value) => `${Number(value).toFixed(1)}°` }, border: { display: false } } },
+    },
+  });
 }
 
 function analysisSnapshot() {
@@ -456,8 +494,13 @@ function trendColor(value) {
 function initMap() {
   state.map = L.map('map', { zoomControl: false, minZoom: 2, maxZoom: 6, worldCopyJump: true }).setView([18, 0], 2);
   L.control.zoom({ position: 'bottomright' }).addTo(state.map);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>', subdomains: 'abcd', maxZoom: 6,
+  const cartoKey = window.CARTO_API_KEY || '';
+  const tileUrl = cartoKey
+    ? `https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${encodeURIComponent(cartoKey)}`
+    : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+  L.tileLayer(tileUrl, {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: cartoKey ? undefined : 'abcd', maxZoom: 6,
   }).addTo(state.map);
 
   const TrendGrid = L.GridLayer.extend({
@@ -656,6 +699,17 @@ function bindControls() {
     state.promptText = '';
     updateQuestionState(state.region === 'south' ? 'north' : state.region);
     updateSummary();
+  });
+  $('compare-button').addEventListener('click', () => {
+    $('hemisphere-comparison').hidden = false;
+    $('compare-button').setAttribute('aria-expanded', 'true');
+    requestAnimationFrame(renderHemisphereComparison);
+  });
+  $('close-comparison').addEventListener('click', () => {
+    $('hemisphere-comparison').hidden = true;
+    $('compare-button').setAttribute('aria-expanded', 'false');
+    if (hemisphereChart) { hemisphereChart.destroy(); hemisphereChart = null; }
+    $('compare-button').focus();
   });
   $('reset-button').addEventListener('click', () => {
     state.region = 'global'; state.local = null; state.promptText = '';

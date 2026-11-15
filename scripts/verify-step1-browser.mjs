@@ -6,7 +6,7 @@ import path from 'node:path';
 const chrome = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const profile = await mkdtemp(path.join(os.tmpdir(), 'trend-step1-'));
 const port = 9335;
-const child = spawn(chrome, ['--headless=new', '--no-sandbox', '--disable-gpu', `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, 'http://127.0.0.1:8000/'], { stdio: 'ignore' });
+const child = spawn(chrome, ['--headless=new', '--no-sandbox', '--disable-gpu', `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, 'http://127.0.0.1:8000/investigate.html'], { stdio: 'ignore' });
 
 try {
   let target;
@@ -32,12 +32,16 @@ try {
   });
   let state;
   for (let i = 0; i < 80; i++) {
-    const raw = await evaluate(`JSON.stringify({title:document.title, chart:typeof Chart, status:document.querySelector('#status')?.textContent, canvas:document.querySelector('#series-chart')?.width})`);
+    const raw = await evaluate(`JSON.stringify({title:document.title, app:typeof applyGuide, chart:typeof Chart, status:document.querySelector('#status')?.textContent, canvas:document.querySelector('#series-chart')?.width})`);
     if (raw) state = JSON.parse(raw);
-    if (state?.title === 'Earth System Trend Detective' && state?.status) break;
+    if (state?.title === 'Earth System Trend Detective' && state?.app === 'function') break;
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
   if (!state || state.title !== 'Earth System Trend Detective') throw new Error(`Local page did not load: ${target.url} ${JSON.stringify(state)}`);
+  const recommendation = await evaluate(`(() => { document.getElementById('interest').value='region'; document.getElementById('region-type').value='rainforest'; updateGuideSuggestion(); return document.getElementById('guide-suggestion').textContent; })()`);
+  if (!recommendation.includes('Precipitation')) throw new Error(`Region-based variable recommendation failed: ${recommendation}`);
+  const guide = JSON.parse(await evaluate(`(() => { document.getElementById('interest').value='rain'; document.getElementById('region-type').value='estuary'; document.getElementById('apply-guide').click(); return JSON.stringify({latitude:document.getElementById('latitude').value,longitude:document.getElementById('longitude').value,variable:document.getElementById('variable').value,examples:document.querySelectorAll('[data-demo]').length}); })()`));
+  if (guide.latitude !== '22.303' || guide.longitude !== '90.226' || guide.variable !== 'PRECTOTCORR' || guide.examples !== 3) throw new Error(`Guided region-to-variable selection failed: ${JSON.stringify(guide)}`);
   await evaluate(`document.querySelector('#investigation-form').requestSubmit(); true`);
   for (let i = 0; i < 80; i++) {
     const raw = await evaluate(`JSON.stringify({status:document.querySelector('#status').textContent, canvas:document.querySelector('#series-chart').width})`);

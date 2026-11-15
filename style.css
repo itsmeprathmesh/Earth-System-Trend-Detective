@@ -12,6 +12,25 @@ header { max-width: 720px; margin-bottom: 32px; }
 .eyebrow { color: #8c392e; font: 12px/1.4 monospace; letter-spacing: .08em; }
 h1 { margin: 8px 0 12px; font: 500 clamp(32px, 6vw, 54px)/1.05 Georgia, serif; }
 header p:last-child { max-width: 650px; color: #555750; line-height: 1.6; }
+.primary-nav { margin-top: 14px; font: 11px monospace; }
+.primary-nav a { color: #8c392e; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.guide, .examples { margin: 28px 0; padding: 18px 0 24px; border-top: 1px solid #c8c5bc; }
+.guide h2, .examples h2 { margin-bottom: 18px; }
+.guide-questions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; max-width: 760px; }
+.guide-questions button { grid-column: 1 / -1; }
+.guide-note, .walkthrough p { max-width: 760px; color: #555750; line-height: 1.5; }
+.place-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; }
+.place-presets span { margin-right: 6px; color: #555750; font: 11px monospace; letter-spacing: .05em; }
+.place-presets button, .example-list button, .walkthrough button { min-height: 36px; padding: 6px 10px; border: 1px solid #aaa99f; color: #20211f; background: transparent; font-weight: 400; }
+.place-presets button { grid-column: auto; }
+.place-presets button:hover, .example-list button:hover, .walkthrough button:hover { border-color: #8c392e; color: #8c392e; background: transparent; }
+.example-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.example-list article { padding-top: 12px; border-top: 1px solid #c8c5bc; }
+.example-list h3 { margin: 0 0 6px; font: 500 22px Georgia, serif; }
+.example-list p { min-height: 56px; color: #555750; line-height: 1.5; }
+.example-list button { grid-column: auto; }
+.walkthrough { display: flex; align-items: start; justify-content: space-between; gap: 16px; margin-top: 18px; border-top: 1px solid #c8c5bc; padding-top: 14px; }
+.walkthrough button { flex: 0 0 auto; }
 form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; max-width: 760px; padding: 20px 0; border-top: 1px solid #c8c5bc; border-bottom: 1px solid #c8c5bc; }
 label { display: grid; gap: 6px; color: #555750; font-size: 14px; }
 input, select, button { min-height: 42px; border: 1px solid #aaa99f; border-radius: 2px; padding: 8px 10px; color: #20211f; background: #fffefa; font: inherit; }
@@ -24,6 +43,10 @@ h2 { font: 500 28px/1.2 Georgia, serif; }
 @media (max-width: 580px) {
   main { padding-top: 24px; }
   form { grid-template-columns: 1fr; }
+  .guide-questions, .example-list { grid-template-columns: 1fr; }
+  .guide-questions button { grid-column: auto; }
+  .example-list p { min-height: 0; }
+  .walkthrough { flex-direction: column; }
   button { grid-column: auto; }
   .chart-wrap { min-height: 280px; }
 }

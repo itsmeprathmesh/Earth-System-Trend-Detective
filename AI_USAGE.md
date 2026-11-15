@@ -4,12 +4,18 @@ Codex generated or changed the files below for this milestone. Humans must revie
 
 | File | Tool and generated work | Human still needs to test or modify |
 |---|---|---|
-| `index.html` | Codex replaced the active entry page with the minimal NASA POWER form and Chart.js yearly-series view for Step 1. | Review labels and test the page on GitHub Pages. |
-| `style.css` | Codex wrote the small responsive stylesheet for the minimal NASA POWER page. | Review the layout at desktop and phone widths. |
-| `power-app.js` | Codex wrote live NASA POWER request construction, monthly parsing, season/year aggregation, Chart.js rendering, and honest request errors. | Verify live CORS and API coverage for the five listed variables. |
-| `scripts/verify-step1-browser.mjs` | Codex wrote a headless Chrome smoke check for local page loading, Chart.js availability, and the Run flow. | Repeat against a browser profile with open network access; the isolated profile here cannot reach NASA POWER. |
+| `index.html` | Codex moved the NASA GISTEMP map and investigation interface to the site root and added the hemisphere comparison panel. | Review the comparison interpretation and verify all assets after deployment. |
+| `style.css` | Codex wrote the responsive stylesheet for the question flow, case walkthroughs, and minimal NASA POWER page. | Review the layout at desktop and phone widths. |
+| `power-app.js` | Codex added a rule-based mapping from interests and region types to NASA POWER variables and coordinates, live-data demo cases, a step-through explainer, and the existing live fetch/chart/error handling. | Test live CORS and all presets; confirm the case wording stays within what POWER measures. |
+| `scripts/verify-step1-browser.mjs` | Codex wrote a headless Chrome smoke check for page loading, region-to-variable guidance, demo controls, and the Run flow. | Repeat against a browser profile with open network access; the isolated profile here cannot reach NASA POWER. |
 | `vercel.json` | Codex configured Vercel to use the static “Other” preset, skip framework build detection, and serve the repository root. | Commit and redeploy from the Vercel-connected branch; verify the dashboard does not set a conflicting project Root Directory. |
-| `gistemp.html` | Codex moved the pre-existing formatted GISTEMP page here so its earlier work remains accessible. | Check its navigation after publication. |
+| `investigate.html` | Codex kept the NASA POWER guided monthly field study as a separate page and added navigation back to the GISTEMP app. | Test live CORS and all presets after deployment. |
+| `app.js` | Codex added a real-data North/South trend overlay with Sen rates and separate Mann–Kendall p-values, and changed the map to OpenStreetMap standard raster tiles to avoid CARTO's required API key. | Review the statistical caveat and comparison at published resolution; follow the OpenStreetMap tile usage policy. |
+| `styles.css` | Codex added responsive styles for the GISTEMP comparison panel. | Review contrast and mobile layout. |
+| `scripts/verify-prd-comparison.mjs` | Codex added a local headless browser check for GISTEMP asset loading and the comparison chart. | Repeat against the deployed URL after a human push. |
+| `audit/shots/after/prd-hemisphere-comparison.png` | Codex captured the working real-grid hemisphere comparison locally. | Replace with a capture from the final deployed site if needed. |
+| `map-runtime-config.js` and `scripts/generate-map-config.mjs` | Codex added Vercel build-time injection for `CARTO_API_KEY`, keeping the key out of tracked source while enabling keyed Voyager tiles. | Add `CARTO_API_KEY` in Vercel Project Settings → Environment Variables, then redeploy; browser-visible map keys are public and should be restricted in CARTO. |
+| `README.md` | Codex updated project scope, routes, architecture, screenshots, and data-loading instructions to match the GISTEMP root app and POWER field study. | Add the real deployed URL, video, and team details. |
 | `investigate.css` | Codex wrote the field-notebook layout, responsive rules, year sliders, dark theme, and reduced-motion handling. | Review contrast and layout on real devices. |
 | `src/data/power.js` | Codex wrote NASA POWER URL construction, parameter descriptions, response parsing, provenance receipts, and exact-request fallback rules. | Recheck variable definitions, units, and NASA metadata as the API changes. |
 | `src/data/power.test.js` | Codex wrote native Node tests using explicitly labeled test-only fixtures. | Review edge cases and keep fixtures out of app content. |
@@ -30,6 +36,5 @@ Codex generated or changed the files below for this milestone. Humans must revie
 | `audit/shots/after/power-investigation-mobile.png` | Codex captured the full mobile view in headless Chrome using a real NASA snapshot. | Replace with a final deployed-site capture when available. |
 | `audit/shots/after/power-investigation-snapshot.png` | Codex captured the offline fallback view with the public NASA host blocked. | Review the visible snapshot date and receipt. |
 | `README.md` | Codex documented the project, architecture, setup, screenshots, and this disclosure. | Fill in team identities, live URL, and demo video after human review/deployment. |
-| `PROGRESS.md` | Codex recorded milestone status and verification evidence. | Confirm status and date after human publication. |
 
 The prior `AGENTS.md`, precomputed GISTEMP data, and original statistical audit files were not generated or edited for this milestone.
