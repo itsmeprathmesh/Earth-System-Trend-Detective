@@ -1,51 +1,98 @@
+Live demo URL: **[URL PLACEHOLDER — add the GitHub Pages address after deployment]**
+
 # Earth System Trend Detective
 
-A global-scale prototype for exploring trends in NASA GISTEMP v4 annual surface-temperature anomalies. The app uses the observed 2° × 2° NASA grid, calculates regional time series and trend summaries in the browser, and keeps dataset provenance visible.
+## 1) Project Title & Problem Statement
 
-## Run locally
+Earth System Trend Detective is a browser-based tool for investigating historical temperature trends from NASA GISTEMP v4. It lets students and the public inspect global, hemispheric, and selected regional anomaly records, estimate a rate per decade, and compare the Northern and Southern Hemisphere signals.
 
-From this directory, start a static server:
+The primary GISTEMP map uses precomputed NASA temperature grid assets and a global mean series. The separate [NASA POWER field investigation](investigate.html) requests live monthly point data and labels its satellite and model reanalysis provenance. Neither source represents a local ground-station measurement at every point.
+
+## 2) Team Details
+
+| Role | Name | Institution | GitHub username |
+|---|---|---|---|
+| Team lead | **[Name to be added]** | **[Institution to be added]** | **[@username to be added]** |
+| Data and science | **[Name to be added]** | **[Institution to be added]** | **[@username to be added]** |
+| Design and frontend | **[Name to be added]** | **[Institution to be added]** | **[@username to be added]** |
+| Outreach and presentation | **[Name to be added]** | **[Institution to be added]** | **[@username to be added]** |
+
+## 3) Solution Overview & Architecture
+
+The main static GISTEMP app loads a compact 2° × 2° anomaly grid, draws a spatial trend map and regional time series, and includes a side-by-side hemisphere comparison. The separate NASA POWER field investigation supports coordinates, place search, guided variable suggestions, seasonal aggregation, exact-request receipts, and matching NASA snapshots for demonstration locations.
+
+GISTEMP trend statistics and time-series charts run in the browser. The comparison reports each hemisphere's Sen rate and Mann–Kendall p-value, plus the difference between their rates. Separate p-values do not constitute a statistical test of the difference. The POWER field study deseasonalizes monthly values and groups them by selected season before calculating trends.
+
+```mermaid
+flowchart LR
+    Person[Investigator] --> Site[Static HTML, CSS, JavaScript]
+    Site --> GISTEMP[NASA GISTEMP grid assets]
+    GISTEMP --> Map[Canvas trend map]
+    GISTEMP --> Stats[Regional and hemispheric statistics]
+    Stats --> Chart[Chart.js time series and comparison]
+    Site -->|Field study| POWER[NASA POWER API or exact NASA snapshot]
+    POWER --> Receipt[Data receipt and seasonal analysis]
+    Repo[Repository] --> Hosting[Static hosting: GitHub Pages or Vercel]
+```
+
+**Technology stack:** HTML5, CSS3, vanilla JavaScript, NASA GISTEMP static grid assets, NASA POWER monthly API, Chart.js 4.4.7, vendored Leaflet 1.9.4 for the GISTEMP map, Open-Meteo geocoding for the POWER field study, and static hosting. There is no application server or build step. GISTEMP is the root page; NASA POWER is at [`investigate.html`](investigate.html).
+
+NASA POWER parameter IDs were checked against the monthly endpoint: `T2M`, `T2M_MAX`, `T2M_MIN`, `PRECTOTCORR`, `RH2M`, `WS10M`, `ALLSKY_SFC_SW_DWN`, `PS`, `QV2M`, `EVLAND`, `GWETROOT`, and `GWETTOP`. Units and source metadata from each response appear in the receipt. [NASA POWER Monthly API documentation](https://power.larc.nasa.gov/docs/services/api/temporal/monthly/) · [NASA POWER Parameter Dictionary](https://power.larc.nasa.gov/parameters/).
+
+Place-name lookup follows the [Open-Meteo geocoding API](https://open-meteo.com/en/docs/geocoding-api); returned coordinates are sent to NASA POWER only after the user selects a result.
+
+## 4) Live Demo & Screenshots
+
+Live URL: **[URL PLACEHOLDER — add the GitHub Pages address after deployment]**
+
+Demo video: **[VIDEO URL PLACEHOLDER — add after recording]**
+
+- GISTEMP hemisphere comparison: [`audit/shots/after/prd-hemisphere-comparison.png`](audit/shots/after/prd-hemisphere-comparison.png)
+- NASA POWER field investigation: [`audit/shots/after/power-investigation.png`](audit/shots/after/power-investigation.png)
+- Desktop chart: [`audit/shots/after/power-investigation-receipt.png`](audit/shots/after/power-investigation-receipt.png)
+- Full mobile investigation and receipt: [`audit/shots/after/power-investigation-mobile.png`](audit/shots/after/power-investigation-mobile.png)
+- Offline saved-case capture: [`audit/shots/after/power-investigation-snapshot.png`](audit/shots/after/power-investigation-snapshot.png)
+
+## 5) Installation & Setup Guide
+
+The app runs from a static file server. No package installation or API key is needed.
 
 ```powershell
 python -m http.server 8000
 ```
 
-Open `http://localhost:8000` in a browser. The page loads Leaflet and Chart.js from public CDNs, so an internet connection is needed for the basemap and chart library.
+Open `http://localhost:8000` using the server URL, not a `file://` path. GISTEMP fetches `data/grid-metadata.json`, `data/annual-grid.bin`, and `data/global-mean.csv` relative to the site root. The NASA POWER field study needs internet for live requests; matching NASA snapshots support its demo cases.
 
-## Data
-
-- NASA GISS GISTEMP v4 Land-Ocean Temperature Index (LOTI), monthly anomalies relative to 1951–1980.
-- Global mean series: `data/global-mean.csv`.
-- Gridded source product: 2° × 2° monthly netCDF, ERSST v5, 1200 km smoothing.
-- Browser data: `data/annual-grid.bin`, annual means stored as little-endian signed 16-bit integers in hundredths of a degree Celsius; `32767` marks missing cells.
-- The upstream monthly product includes partial 2026 observations. The processed annual grid covers 1880–2025 and excludes incomplete years.
-
-GISTEMP is a NASA analysis product combining NOAA land-station observations and ERSST sea-surface-temperature analysis. It is not a satellite-only measurement. Grid cells are 2 degrees in latitude and longitude and the analysis uses a 1200 km smoothing radius, so this is not local-scale ground truth.
-
-Dataset citation: GISTEMP Team (2026), *GISS Surface Temperature Analysis (GISTEMP), version 4*, NASA Goddard Institute for Space Studies. Accessed 2026-11-14. https://data.giss.nasa.gov/gistemp/ . See also Lenssen et al. (2024), doi:10.1029/2023JD040179.
-
-## Regenerate the browser grid
-
-Download the official compressed monthly grid from NASA and run the preparation script:
+Run the dependency-free JavaScript tests with Node.js 22:
 
 ```powershell
-Invoke-WebRequest 'https://data.giss.nasa.gov/pub/gistemp/gistemp1200_GHCNv4_ERSSTv5.nc.gz' -OutFile 'gistemp1200_GHCNv4_ERSSTv5.nc.gz'
-python -m pip install numpy scipy
-python scripts/prepare_data.py gistemp1200_GHCNv4_ERSSTv5.nc.gz
+node --test src/stats/index.test.js src/data/power.test.js
 ```
 
-The script writes the annual grid and `data/grid-metadata.json`. It keeps years with at least nine valid monthly observations per cell and excludes partial-year records from the interface.
+Regenerate the eight raw NASA POWER snapshots with Node.js 22 and an internet connection:
 
-## Analysis notes
+```powershell
+node scripts/fetch-snapshots.mjs
+```
 
-- Regional trend magnitude is the Sen median slope, reported in °C per decade.
-- The trend map shows ordinary least-squares slope by grid cell for visual exploration; it does not claim per-cell statistical significance.
-- The selected-area significance summary uses a Mann–Kendall test with a lag-1 autocorrelation variance adjustment and Benjamini–Hochberg correction is not applied to individual map cells because the map does not display pixel-level significance.
-- Statistical significance is evidence against a no-monotonic-trend null under the stated test assumptions; it does not establish cause or forecast future conditions.
-- Region averages use cosine-latitude weights and exclude missing cells.
-- Monthly values are summarized as annual means, which reduces the regular seasonal cycle; the current interface focuses on linear trend estimates.
-- The guided questions and demos are curated for the currently loaded temperature dataset; they are not an AI-based variable search system.
+Run the randomized three-case receipt check before each milestone:
 
-## Related hydrology discovery
+```powershell
+node scripts/check-power-receipts.mjs
+```
 
-The app links to [CUAHSI HydroClient](https://data.cuahsi.org/), which helps users discover, preview, and download hydrologic station time series such as streamflow, meteorological observations, and soil moisture. Coverage depends on the selected data service and location; CUAHSI's HIS is undergoing modernization. These station series are a possible later data integration, not an input to the current global NASA temperature map.
+Recompute the independent Python report (SciPy and NumPy are already listed in `requirements.txt`):
+
+```powershell
+python scripts/verify.py
+```
+
+The app deploys as static files through the existing GitHub Pages workflow. Do not commit API credentials; NASA POWER does not require an API key for these requests.
+
+For CARTO Voyager tiles on Vercel, set `CARTO_API_KEY` in the project's Environment Variables and redeploy. The build writes the key into the generated browser config; restrict that key by allowed domains in CARTO. Without the variable, the map uses CARTO's dark raster tiles, which may display the provider's key notice.
+
+## 6) AI Usage Disclosure
+
+Codex generated the P0 investigation interface, data parser, statistical module, tests, snapshot and verification scripts, and documentation in this repository. The eight response snapshots were fetched directly from NASA POWER by the documented script and were not edited by hand. Test fixtures are confined to tests and are never shown in the app. The full file-by-file disclosure, including remaining human review, is in [`AI_USAGE.md`](AI_USAGE.md).
+
+`pymannkendall` was not installed because this project was kept dependency-free at the user's direction. `scripts/verify.py` compares the JavaScript results against independent SciPy and Python calculations and records the limitation in [`docs/verification.md`](docs/verification.md).

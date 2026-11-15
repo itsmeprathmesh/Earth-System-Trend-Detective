@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore yearly NASA POWER Earth science data for a place you choose.">
+  <title>Earth System Trend Detective</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    window.chartReady = new Promise((resolve) => {
+      const load = (source, fallback = false) => {
+        const script = document.createElement('script');
+        script.src = source;
+        script.onload = () => resolve(true);
+        script.onerror = () => fallback ? resolve(false) : load('vendor/chart.umd.min.js', true);
+        document.head.append(script);
+      };
+      load('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.6.1/chart.umd.min.js');
+    });
+  </script>
+  <script src="power-app.js" defer></script>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">NASA POWER · MONTHLY DATA</p>
+      <h1>Earth System Trend Detective</h1>
+      <p>Choose a place and variable to see its yearly record. Data come from satellite observations and atmospheric or land-surface reanalysis, not local ground stations.</p>
+      <nav class="primary-nav" aria-label="Other investigations"><a href="./">← OPEN THE GISTEMP TREND MAP</a></nav>
+    </header>
+
+    <section class="guide" aria-labelledby="guide-title">
+      <p class="eyebrow">START AN INVESTIGATION</p>
+      <h2 id="guide-title">What do you want to examine, and where?</h2>
+      <div class="guide-questions">
+        <label>What are you curious about?
+          <select id="interest">
+            <option value="region" selected>Recommend a variable for this place</option>
+            <option value="heat">Heat in the air</option>
+            <option value="rain">Rainfall</option>
+            <option value="humidity">Humidity</option>
+            <option value="wind">Wind speed</option>
+            <option value="sunlight">Sunlight reaching the surface</option>
+          </select>
+        </label>
+        <label>What kind of place?
+          <select id="region-type">
+            <option value="nagpur" selected>Nagpur · home city</option>
+            <option value="desert">Desert</option>
+            <option value="rainforest">Rain forest</option>
+            <option value="estuary">Tidal estuary</option>
+            <option value="city">Large city atmosphere</option>
+            <option value="polar">Polar region</option>
+          </select>
+        </label>
+        <button id="apply-guide" type="button">USE THIS INVESTIGATION</button>
+      </div>
+      <p id="guide-suggestion" class="guide-note" aria-live="polite">Home city · Nagpur point · air temperature. A regional climate question to explore with NASA POWER’s monthly record.</p>
+      <div class="place-presets" role="group" aria-label="Choose a suggested place">
+        <span>QUICK PLACES</span>
+        <button type="button" data-place="nagpur">Nagpur</button>
+        <button type="button" data-place="city">Delhi</button>
+        <button type="button" data-place="desert">Sahara</button>
+        <button type="button" data-place="rainforest">Amazon</button>
+        <button type="button" data-place="polar">Arctic</button>
+        <button type="button" data-place="estuary">Estuary</button>
+      </div>
+    </section>
+
+    <section class="examples" aria-labelledby="examples-title">
+      <p class="eyebrow">WATCH A REAL DATA CASE</p>
+      <h2 id="examples-title">Three questions to start with</h2>
+      <div class="example-list">
+        <article><h3>Sahara · heat</h3><p>What does the long air-temperature record show at a desert point?</p><button type="button" data-demo="sahara">RUN THIS CASE</button></article>
+        <article><h3>Amazon · rain</h3><p>How has monthly precipitation varied over a rain forest?</p><button type="button" data-demo="amazon">RUN THIS CASE</button></article>
+        <article><h3>Arctic · heat</h3><p>What does the same temperature measure show at high latitude?</p><button type="button" data-demo="arctic">RUN THIS CASE</button></article>
+      </div>
+      <div class="walkthrough" aria-live="polite">
+        <p id="walkthrough-text">Each example requests its own live NASA POWER series. The walkthrough explains the steps; the chart always uses the returned data.</p>
+        <button id="walkthrough-next" type="button" hidden>NEXT STEP</button>
+      </div>
+    </section>
+
+    <form id="investigation-form">
+      <label>Latitude
+        <input id="latitude" name="latitude" type="number" min="-90" max="90" step="any" value="21.145" required>
+      </label>
+      <label>Longitude
+        <input id="longitude" name="longitude" type="number" min="-180" max="180" step="any" value="79.088" required>
+      </label>
+      <label>Variable
+        <select id="variable" name="variable">
+          <option value="T2M">Air temperature (T2M)</option>
+          <option value="PRECTOTCORR">Precipitation (PRECTOTCORR)</option>
+          <option value="RH2M">Relative humidity (RH2M)</option>
+          <option value="WS10M">Wind speed (WS10M)</option>
+          <option value="ALLSKY_SFC_SW_DWN">Surface sunlight (ALLSKY_SFC_SW_DWN)</option>
+        </select>
+      </label>
+      <label>Season
+        <select id="season" name="season">
+          <option value="annual">Annual</option>
+          <option value="mam">MAM · March–May</option>
+          <option value="jjas">JJAS · June–September</option>
+          <option value="djf">DJF · December–February</option>
+        </select>
+      </label>
+      <button type="submit">Run</button>
+    </form>
+
+    <p id="status" role="status" aria-live="polite">Ready to request a live NASA POWER record.</p>
+    <section aria-labelledby="chart-title">
+      <h2 id="chart-title">Yearly values</h2>
+      <div class="chart-wrap"><canvas id="series-chart" aria-label="NASA POWER yearly values chart" role="img"></canvas></div>
+    </section>
+  </main>
+</body>
+</html>

@@ -34,6 +34,9 @@ jobs:
       - name: Gate A - Validate JavaScript Syntax
         run: |
           node --check app.js
+          node --check src/ui/investigate.js
+          node --check scripts/fetch-snapshots.mjs
+          node --check scripts/report-js-stats.mjs
           node --check audit/run_js_stats.js
           node --check audit/measure_cell_trend.js
           node --check audit/capture_screenshot.js
@@ -53,6 +56,14 @@ jobs:
       - name: Gate E - Verify Sen Slope & Mann-Kendall vs SciPy
         run: |
           python audit/fixtures.py
+
+      - name: Gate F - NASA POWER data and statistics tests
+        run: |
+          node --test src/stats/index.test.js src/data/power.test.js
+
+      - name: Gate G - Independent NASA POWER statistics verification
+        run: |
+          python scripts/verify.py
 
   deploy:
     name: Deploy to GitHub Pages
